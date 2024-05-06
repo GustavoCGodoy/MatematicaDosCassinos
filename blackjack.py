@@ -5,7 +5,6 @@ import pandas as pd;
 ## Classe de jogadores
 class Jogador():
     mao = []
-    total = 0
     mao_suave = False
 
 ##Classe do dealer
@@ -13,18 +12,6 @@ class Dealer():
     mao = []
     carta_principal = ''
     dinheiro = 0
-
-#Inicialização do deck - 6 baralhos de 52 cartas
-baralho = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4 * 6
-valores_cartas = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
-
-##Inicialização de variáveis
-jogadores = list()
-jogadas = 0
-vitorias = 0
-empates = 0
-lucro = []
-rodadas = []
 
 ##Jogador compra carta
 def hit(jogador):
@@ -89,20 +76,55 @@ def resultado():
 def coletar_aposta():
     dealer.dinheiro += 20
 
-##Define qual jogada o jogador vai fazer
+##Faz a jogada de um jogador
 def fazer_jogada(jogador):
-    while jogador.mao_suave and calcular_total(jogador.mao)<18:
-        hit(jogador)
-    if dealer.carta_principal == '2' or dealer.carta_principal == '3':
-        while calcular_total(jogador.mao)<13:
+    if otimizado:
+        while jogador.mao_suave and calcular_total(jogador.mao)<18:
             hit(jogador)
-    if dealer.carta_principal == '4' or dealer.carta_principal == '5' or dealer.carta_principal == '6':
-        while calcular_total(jogador.mao)<12:
-            hit(jogador)
-    if dealer.carta_principal == '7' or dealer.carta_principal == '8' or dealer.carta_principal == '9'  or dealer.carta_principal == '10' or dealer.carta_principal == 'A':
+        if dealer.carta_principal == '2' or dealer.carta_principal == '3':
+            while calcular_total(jogador.mao)<13:
+                hit(jogador)
+        if dealer.carta_principal == '4' or dealer.carta_principal == '5' or dealer.carta_principal == '6':
+            while calcular_total(jogador.mao)<12:
+                hit(jogador)
+        if dealer.carta_principal == '7' or dealer.carta_principal == '8' or dealer.carta_principal == '9'  or dealer.carta_principal == '10' or dealer.carta_principal == 'A':
+            while calcular_total(jogador.mao)<17:
+                hit(jogador) 
+    else:
         while calcular_total(jogador.mao)<17:
             hit(jogador) 
 
+def printDados():
+    print("Número de jogadas: {}".format(jogadas))
+    print("Número de vitórias: {}".format(vitorias))
+    print("Número de empates: {}".format(empates))
+    print("Taxa de vitória: {:.3f}".format((vitorias/jogadas)*100))
+    print("Lucro do dealer: {}".format(dealer.dinheiro))
+
+def gerarGrafico(lucro, rodadas):
+    otimizado = list()
+    for i in range(qtd_rodadas):
+        otimizado.append("Não otimizado")
+    for i in range(qtd_rodadas):
+        otimizado.append("Otimizado")
+
+    dict = {"lucro": lucro, "rodadas": rodadas, "otimizado": otimizado}
+    df = pd.DataFrame(dict)
+    fig = px.line(df, x = "rodadas", y = "lucro", title="Lucro do dealer ao longo do tempo (jogada otimizada vs não otimizada)", color = otimizado, markers = True)
+    fig.show()
+
+#Inicialização do deck - 6 baralhos de 52 cartas
+baralho = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4 * 6
+valores_cartas = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
+
+##Inicialização de variáveis
+jogadores = list()
+jogadas = 0
+vitorias = 0
+empates = 0
+lucro = []
+rodadas = []
+otimizado = False
 
 ##Iteração
 for jogador in range(7):
@@ -120,15 +142,24 @@ for rodada in range(qtd_rodadas):
         hit(dealer)
     resultado()
     lucro.append(dealer.dinheiro)
-    rodadas.append(rodada)
-
-##Print de resultados
-print("Número de jogadas: {}".format(jogadas))
-print("Número de vitórias: {}".format(vitorias))
-print("Número de empates: {}".format(empates))
-print("Taxa de vitória: {:.3f}".format((vitorias/jogadas)*100))
-
-dict = {"lucro": lucro, "rodadas": rodadas}
-df = pd.DataFrame(dict)
-fig = px.line(df, x = "rodadas", y = "lucro", title="Lucro do dealer ao longo do tempo (jogada otimizada)", markers = True)
-fig.show()
+    rodadas.append(rodada+1)
+print("\nJOGADA NÃO OTIMIZADA: \n")
+printDados()
+otimizado = True
+dealer.dinheiro = 0
+vitorias = 0
+empates = 0
+jogadas = 0
+for rodada in range(qtd_rodadas):
+    dar_cartas()
+    for jogador in jogadores:
+        coletar_aposta()
+        fazer_jogada(jogador)
+    while calcular_total(dealer.mao)<=17:
+        hit(dealer)
+    resultado()
+    lucro.append(dealer.dinheiro)
+    rodadas.append(rodada+1)
+print("\nJOGADA OTIMIZADA: \n")
+printDados()
+gerarGrafico(lucro, rodadas)
