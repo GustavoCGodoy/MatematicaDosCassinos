@@ -10,7 +10,7 @@ class Jogador:
     historico = []
     rodadas = []
 
-def apostar(jogador, rodada):
+def apostar(jogador):
     global lucro_cassino
     global saldoacumulado
     if jogador.dinheiro<=50:
@@ -51,13 +51,13 @@ for i in range(qtd_rodadas):
     print("Na rodada ",i+1," o número sorteado foi: ",sorteado)
     for jogador in jogadores:
         if jogador.dinheiro>0:
-            apostado = apostar(jogador, rodada)
+            apostado = apostar(jogador)
             apostas += 1
             jogador.aposta = np.random.randint(0,37)
             if sorteado == jogador.aposta:
-                jogador.dinheiro += apostado*35
-                lucro_cassino -= apostado*35
-                saldoacumulado += apostado*35
+                jogador.dinheiro += apostado*35 + apostado
+                lucro_cassino -= apostado*35 + apostado
+                saldoacumulado += apostado*35 + apostado
                 vitorias += 1
     saldo.append(saldoacumulado)
     rodadas.append(rodada)
@@ -70,6 +70,7 @@ for jogador in jogadores:
     if jogador.dinheiro == 0:
         qtd_falencia += 1
     print(jogador.dinheiro)
+    
 ##Impressão dos resultados
 taxa_vitoria = "{:.3f}".format((vitorias/apostas)*100)
 print("HOUVERAM ",apostas," APOSTAS, COM APENAS ",vitorias,"VITORIAS.")
