@@ -13,10 +13,10 @@ class Jogador:
 def apostar(jogador):
     global lucro_cassino
     global saldoacumulado
-    if jogador.dinheiro<=50:
+    if jogador.dinheiro<=20:
         apostado = jogador.dinheiro
     else:
-        apostado = np.random.randint(20,51)
+        apostado = 20
     jogador.dinheiro -= apostado
     lucro_cassino += apostado
     saldoacumulado -= apostado

@@ -206,13 +206,13 @@ def printDados():
 def gerarGrafico(lucro, rodadas):
     otimizado = list()
     for i in range(qtd_rodadas):
-        otimizado.append("Não otimizado")
+        otimizado.append("Não otimizada")
     for i in range(qtd_rodadas):
-        otimizado.append("Otimizado")
+        otimizado.append("Otimizada")
 
-    dict = {"lucro": lucro, "rodadas": rodadas, "otimizado": otimizado}
+    dict = {"lucro": lucro, "rodadas": rodadas, "estratégia": otimizado}
     df = pd.DataFrame(dict)
-    fig = px.line(df, x = "rodadas", y = "lucro", title="Lucro do dealer ao longo do tempo (jogada otimizada vs não otimizada)", color = otimizado, markers = True)
+    fig = px.line(df, x = "rodadas", y = "lucro", title="Lucro do dealer ao longo do tempo (jogada otimizada vs não otimizada)", color = "estratégia")
     fig.show()
 
 #Inicialização do deck - 6 baralhos de 52 cartas
