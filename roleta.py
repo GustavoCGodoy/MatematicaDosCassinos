@@ -23,9 +23,11 @@ def apostar(jogador):
     return apostado
     
 ## Input dos dados que o usuário quer simular
-qtd_jogadores = int(input("Quantos jogadores participarão da simulação?: "))
+ 
+qtd_jogadores = int(input("Quantos jogadores serão simulados?: "))
 qtd_dinheiro = int(input("Qual será a quantia de dinheiro inicial de cada jogador?: "))
 qtd_rodadas = int(input("Quantas rodadas serão simuladas?: "))
+premio = int(input("Qual será o prêmio por vitória? ('35', '36' ou '37'): "))
 
 ##Concatenando todos os jogadores em uma lista
 jogadores = list()
@@ -37,7 +39,7 @@ apostas = 0
 lucro_cassino = 0
 vitorias = 0
 qtd_prejuizos = 0
-qtd_falencia = 0
+qtd_falencias = 0
 saldo = []
 rodadas = []
 saldoacumulado = qtd_dinheiro*qtd_jogadores
@@ -55,9 +57,9 @@ for i in range(qtd_rodadas):
             apostas += 1
             jogador.aposta = np.random.randint(0,37)
             if sorteado == jogador.aposta:
-                jogador.dinheiro += apostado*35 + apostado
-                lucro_cassino -= apostado*35 + apostado
-                saldoacumulado += apostado*35 + apostado
+                jogador.dinheiro += apostado*premio + apostado
+                lucro_cassino -= apostado*premio + apostado
+                saldoacumulado += apostado*premio + apostado
                 vitorias += 1
     saldo.append(saldoacumulado)
     rodadas.append(rodada)
@@ -68,7 +70,7 @@ for jogador in jogadores:
     if jogador.dinheiro < qtd_dinheiro:
         qtd_prejuizos += 1
     if jogador.dinheiro == 0:
-        qtd_falencia += 1
+        qtd_falencias += 1
     print(jogador.dinheiro)
     
 ##Impressão dos resultados
@@ -76,7 +78,7 @@ taxa_vitoria = "{:.3f}".format((vitorias/apostas)*100)
 print("HOUVERAM ",apostas," APOSTAS, COM APENAS ",vitorias,"VITORIAS.")
 print("TAXA DE VITÓRIA: ", taxa_vitoria,"%")
 print("DOS {} JOGADORES, {} TERMINARAM O JOGO COM PREJUIZO.".format(qtd_jogadores,qtd_prejuizos))
-print("DESTES, {} JOGADORES TERMINARAM O JOGO COM SALDO ZERADO.".format(qtd_falencia))
+print("DESTES, {} JOGADORES TERMINARAM O JOGO COM SALDO ZERADO.".format(qtd_falencias))
 print("O CASSINO LUCROU R$", lucro_cassino, " NO TOTAL")
 
 #Plotagem do gráfico usando Plotly

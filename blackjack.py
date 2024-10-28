@@ -5,10 +5,8 @@ import pandas as pd;
 ## Classe de jogadores
 class Jogador():
     mao = []
-    mao_split = []
     mao_suave = False
     blackjack = False
-    blackjack_split = False
 
 ##Classe do dealer
 class Dealer():
@@ -20,19 +18,13 @@ class Dealer():
 def hit(jogador):
     jogador.mao.append(baralho.pop())
 
-def hit_split(jogador):
-    jogador.mao_split.append(baralho.pop())
-
 ##Embaralhar o deck
 def embaralhar():
     np.random.shuffle(baralho)
 
 ##Distribui cartas para todos os jogadores e o dealer
 def dar_cartas():
-    global cartas_usadas
-    if cartas_usadas>=208:
-        embaralhar()
-        cartas_usadas = 0
+    embaralhar()
     for jogador in jogadores:
         jogador.mao.append(baralho.pop())
         jogador.mao.append(baralho.pop())
@@ -57,9 +49,9 @@ def isMao_suave(mao):
                 return True
     return False
 
-#Checa se uma mão é um par
+#Checa se uma mão é um par e retorna a carta se for par
 def isPar(mao):
-    if mao[0] == mao[1]:
+    if len(mao) == 2 and mao[0] == mao[1]:
         return mao[0]
     else:
         return False
@@ -70,51 +62,16 @@ def isBlackjack(jogador):
     else:
         jogador.blackjack = False
 
-def isBlackjack_split(jogador):
-    if len(jogador.mao_split)==2 and calcular_total(jogador.mao_split)==21:
-        jogador.blackjack_split = True
-    else:
-        jogador.blackjack_split = False
-
-##Checa se o jogador precisa fazer split
-def split(jogador):
-    if (isPar(jogador.mao) == '2' or isPar(jogador.mao) == '3') and (dealer.carta_principal == '4' or dealer.carta_principal == '5' or dealer.carta_principal == '6' or dealer.carta_principal == '7'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-    elif isPar(jogador.mao) == '6' and (dealer.carta_principal == '3' or dealer.carta_principal == '4' or dealer.carta_principal == '5' or dealer.carta_principal == '6'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-    elif (isPar(jogador.mao)=='7' or isPar(jogador.mao)=='8') and (dealer.carta_principal=='2' or  dealer.carta_principal=='3' or dealer.carta_principal=='4' or dealer.carta_principal=='5' or dealer.carta_principal=='6' or dealer.carta_principal=='7'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-    elif (isPar(jogador.mao)=='8' or isPar(jogador.mao)=='9') and (dealer.carta_principal=='8' or  dealer.carta_principal=='9'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-    elif (isPar(jogador.mao)=='9') and (dealer.carta_principal=='2' or  dealer.carta_principal=='3' or dealer.carta_principal=='4' or dealer.carta_principal=='5' or dealer.carta_principal=='6'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-    elif (isPar(jogador.mao)=='A') and (dealer.carta_principal=='2' or  dealer.carta_principal=='3' or dealer.carta_principal=='4' or dealer.carta_principal=='5' or dealer.carta_principal=='6' or dealer.carta_principal=='7' or dealer.carta_principal=='8' or dealer.carta_principal=='9' or dealer.carta_principal=='10'):
-        jogador.mao_split.append(jogador.mao.pop())
-        dealer.dinheiro += 20
-        fazer_jogada_split(jogador)
-
 ##Esvazia uma mão
 def esvaziar_mao(mao):
-    global cartas_usadas
     for carta in mao:
         baralho.insert(0, carta)
-        cartas_usadas += 1
     nova_mao = []
     return nova_mao
     
 ##Define o resultado de cada mão dos jogadores em relação ao dealer
 def resultado():
-    global vitorias, empates, jogadas, blackjack
+    global vitorias, empates, jogadas, blackjack, extrapolacao
     for jogador in jogadores:
         if jogador.blackjack and calcular_total(dealer.mao)!=21:
             dealer.dinheiro -= 50
@@ -129,30 +86,11 @@ def resultado():
         elif calcular_total(dealer.mao)>21 and calcular_total(jogador.mao)<=21:
             dealer.dinheiro -= 40
             vitorias += 1
+        if calcular_total(jogador.mao)>21:
+            extrapolacao += 1
         jogadas += 1
         jogador.mao = esvaziar_mao(jogador.mao)
     dealer.mao = esvaziar_mao(dealer.mao)
-
-##Define o resultado de cada mão dos jogadores em relação ao dealer
-def resultado_split():
-    global vitorias, empates, jogadas, blackjack
-    for jogador in jogadores:
-        if jogador.mao_split:
-            if jogador.blackjack_split and calcular_total(dealer.mao)!=21:
-                dealer.dinheiro -= 50
-                vitorias += 1
-                blackjack += 1
-            elif calcular_total(jogador.mao_split)<=21 and calcular_total(jogador.mao_split)>calcular_total(dealer.mao):
-                dealer.dinheiro -= 40
-                vitorias += 1
-            elif calcular_total(jogador.mao_split)<=21 and calcular_total(jogador.mao_split)==calcular_total(dealer.mao):
-                dealer.dinheiro -= 20
-                empates += 1
-            elif calcular_total(dealer.mao)>21 and calcular_total(jogador.mao_split)<=21:
-                dealer.dinheiro -= 40
-                vitorias += 1
-            jogadas += 1
-            jogador.mao_split = esvaziar_mao(jogador.mao_split)
 
 ##Coleta aposta do jogador
 def coletar_aposta():
@@ -162,47 +100,33 @@ def coletar_aposta():
 def fazer_jogada(jogador):
     isBlackjack(jogador)
     if otimizado and isMao_suave(jogador.mao):
-        split(jogador)
-        while calcular_total(jogador.mao)<=17:
+        while calcular_total(jogador.mao)<=17 and len(jogador.mao)<=5:
             hit(jogador)
-        while (dealer.carta_principal == '9' or dealer.carta_principal == '10' or dealer.carta_principal == 'A') and calcular_total(jogador.mao) == 18:
+        while (dealer.carta_principal == '9' or dealer.carta_principal == '10') and calcular_total(jogador.mao) == 18 and len(jogador.mao)<=5:
             hit(jogador)
     elif otimizado:
-        split(jogador)
-        while calcular_total(jogador.mao)<=11:
+        while calcular_total(jogador.mao)<=11  and len(jogador.mao)<=5:
             hit(jogador)
-        while (dealer.carta_principal == '2' or dealer.carta_principal == '3') and calcular_total(jogador.mao)==12:
+        while (dealer.carta_principal == '2' or dealer.carta_principal == '3') and calcular_total(jogador.mao)==12 and len(jogador.mao)<=5:
             hit(jogador)
-        while (dealer.carta_principal == 'A' or dealer.carta_principal == '7' or dealer.carta_principal == '8' or dealer.carta_principal == '9' or dealer.carta_principal == '10') and calcular_total(jogador.mao)<=16:
+        while (dealer.carta_principal == 'A' or dealer.carta_principal == '7' or dealer.carta_principal == '8' or dealer.carta_principal == '9' or dealer.carta_principal == '10') and calcular_total(jogador.mao)<=16 and len(jogador.mao)<=5:
             hit(jogador)
     else:
-        while calcular_total(jogador.mao)<17:
+        while calcular_total(jogador.mao)<17 and len(jogador.mao)<=5:
             hit(jogador) 
 
-def fazer_jogada_split(jogador):
-    hit_split(jogador)
-    isBlackjack_split(jogador)
-    if isMao_suave(jogador.mao_split):
-        while calcular_total(jogador.mao_split)<=17:
-            hit_split(jogador)
-        while (dealer.carta_principal == '9' or dealer.carta_principal == '10' or dealer.carta_principal == 'A') and calcular_total(jogador.mao_split) == 18:
-            hit_split(jogador)
-    else:
-        while calcular_total(jogador.mao_split)<=11:
-            hit_split(jogador)
-        while (dealer.carta_principal == '2' or dealer.carta_principal == '3') and calcular_total(jogador.mao_split)==12:
-            hit_split(jogador)
-        while (dealer.carta_principal == 'A' or dealer.carta_principal == '7' or dealer.carta_principal == '8' or dealer.carta_principal == '9' or dealer.carta_principal == '10') and calcular_total(jogador.mao_split)<=16:
-            hit_split(jogador)
 
+##Printa os dados para análise
 def printDados():
     print("Número de jogadas: {}".format(jogadas))
     print("Número de blackjacks: {}".format(blackjack))
     print("Número de vitórias: {}".format(vitorias))
     print("Número de empates: {}".format(empates))
+    print("Número de extrapolações: {}".format(extrapolacao))
     print("Taxa de vitória: {:.3f}".format((vitorias/jogadas)*100))
     print("Lucro do dealer: {}".format(dealer.dinheiro))
 
+##Gera gráfico
 def gerarGrafico(lucro, rodadas):
     otimizado = list()
     for i in range(qtd_rodadas):
@@ -215,14 +139,13 @@ def gerarGrafico(lucro, rodadas):
     fig = px.line(df, x = "rodadas", y = "lucro", title="Lucro do dealer ao longo do tempo (jogada otimizada vs não otimizada)", color = "estratégia")
     fig.show()
 
-#Inicialização do deck - 6 baralhos de 52 cartas
-baralho = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4 * 6
+#Inicialização do deck - 1 baralho de 52 cartas
+baralho = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4
 valores_cartas = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
 
 ##Inicialização de variáveis
 jogadores = list()
 blackjack = 0
-cartas_usadas = 0
 jogadas = 0
 vitorias = 0
 empates = 0
@@ -230,14 +153,16 @@ derrotas = 0
 lucro = []
 rodadas = []
 otimizado = False
+extrapolacao = 0
 
-##Iteração
+##Inicialização dos jogadores
 for jogador in range(7):
     jogadores.append(Jogador())
 dealer = Dealer()
 
 qtd_rodadas = int(input("QUANTAS RODADAS A MESA VAI JOGAR?: "))
 
+##Iteração das jogadas não otimizada
 for rodada in range(qtd_rodadas):
     dar_cartas()
     for jogador in jogadores:
@@ -248,8 +173,11 @@ for rodada in range(qtd_rodadas):
     resultado()
     lucro.append(dealer.dinheiro)
     rodadas.append(rodada+1)
+
 print("\nJOGADA NÃO OTIMIZADA: \n")
 printDados()
+
+##Zera as variaveis e define otimizado como true
 otimizado = True
 dealer.dinheiro = 0
 blackjack = 0
@@ -257,6 +185,9 @@ vitorias = 0
 empates = 0
 jogadas = 0
 derrotas = 0
+extrapolacao = 0
+
+##Iteração das jogadas otimizadas
 for rodada in range(qtd_rodadas):
     dar_cartas()
     for jogador in jogadores:
@@ -264,10 +195,10 @@ for rodada in range(qtd_rodadas):
         fazer_jogada(jogador)
     while calcular_total(dealer.mao)<17:
         hit(dealer)
-    resultado_split()
     resultado()
     lucro.append(dealer.dinheiro)
     rodadas.append(rodada+1)
+
 print("\nJOGADA OTIMIZADA: \n")
 printDados()
 gerarGrafico(lucro, rodadas)
