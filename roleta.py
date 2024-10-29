@@ -27,7 +27,7 @@ def apostar(jogador):
 qtd_jogadores = int(input("Quantos jogadores serão simulados?: "))
 qtd_dinheiro = int(input("Qual será a quantia de dinheiro inicial de cada jogador?: "))
 qtd_rodadas = int(input("Quantas rodadas serão simuladas?: "))
-premio = int(input("Qual será o prêmio por vitória? ('35', '36' ou '37'): "))
+premio = int(input("Qual será o prêmio por vitória? ('35' ou '36'): "))
 
 ##Concatenando todos os jogadores em uma lista
 jogadores = list()
@@ -50,7 +50,6 @@ rodadas.append(0)
 rodada = 1
 for i in range(qtd_rodadas):
     sorteado = np.random.randint(0,37)
-    print("Na rodada ",i+1," o número sorteado foi: ",sorteado)
     for jogador in jogadores:
         if jogador.dinheiro>0:
             apostado = apostar(jogador)
@@ -71,11 +70,10 @@ for jogador in jogadores:
         qtd_prejuizos += 1
     if jogador.dinheiro == 0:
         qtd_falencias += 1
-    print(jogador.dinheiro)
     
 ##Impressão dos resultados
 taxa_vitoria = "{:.3f}".format((vitorias/apostas)*100)
-print("HOUVERAM ",apostas," APOSTAS, COM APENAS ",vitorias,"VITORIAS.")
+print("\nHOUVERAM ",apostas," APOSTAS, COM APENAS ",vitorias,"VITORIAS.")
 print("TAXA DE VITÓRIA: ", taxa_vitoria,"%")
 print("DOS {} JOGADORES, {} TERMINARAM O JOGO COM PREJUIZO.".format(qtd_jogadores,qtd_prejuizos))
 print("DESTES, {} JOGADORES TERMINARAM O JOGO COM SALDO ZERADO.".format(qtd_falencias))
